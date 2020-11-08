@@ -2,9 +2,7 @@ package com.example.jrspringsecurity.security;
 
 public enum ApplicationUserAuthority {
     STUDENT_READ("student:read"),
-    STUDENT_WRITE("student:write"),
-    COURSE_READ("course:read"),
-    COURSE_WRITE("couse:write");
+    STUDENT_WRITE("student:write");
 
     private final String authority;
 
