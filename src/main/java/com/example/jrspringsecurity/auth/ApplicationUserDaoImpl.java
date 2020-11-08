@@ -1,61 +1,44 @@
 package com.example.jrspringsecurity.auth;
 
-import com.google.common.collect.Lists;
+import com.example.jrspringsecurity.entities.Authority;
+import com.example.jrspringsecurity.entities.User;
+import com.example.jrspringsecurity.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
-import static com.example.jrspringsecurity.security.ApplicationUserRole.*;
-
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Repository()
 public class ApplicationUserDaoImpl implements ApplicationUserDao {
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private UserRepository userRepository;
 
     @Override
     public Optional<UserDetails> getApplicationUserByName(String username) {
-        return getApplicationUsers()
-                .stream()
-                .filter(applicationUser -> username.equals(applicationUser.getUsername()))
-                .findFirst();
-    }
+        User user = userRepository.findByUsername(username);
 
-    private List<UserDetails> getApplicationUsers() {
-        List<UserDetails> applicationUsers = Lists.newArrayList(
-                new ApplicationUser(
-                        "student",
-                        passwordEncoder.encode("password"),
-                        STUDENT.getGrantedAuthorities(),
-                        true,
-                        true,
-                        true,
-                        true
-                ),
-                new ApplicationUser(
-                        "admin",
-                        passwordEncoder.encode("password"),
-                        ADMIN.getGrantedAuthorities(),
-                        true,
-                        true,
-                        true,
-                        true
-                ),
-                new ApplicationUser(
-                        "admin-trainee",
-                        passwordEncoder.encode("password"),
-                        ADMINTRAINEE.getGrantedAuthorities(),
-                        true,
-                        true,
-                        true,
-                        true
-                )
+        UserDetails userDetails = new ApplicationUser(
+                user.getUsername(),
+                user.getEncodedPassword(),
+                generateGrantedAuthority(user.getAuthorities()),
+                true,
+                true,
+                true,
+                true
         );
 
-        return applicationUsers;
+        return Optional.of(userDetails);
+    }
+
+    private Set<SimpleGrantedAuthority> generateGrantedAuthority(Set<Authority> authorities) {
+        Set<SimpleGrantedAuthority> permissions = authorities.stream()
+                .map(authority -> new SimpleGrantedAuthority(authority.getPermission()))
+                .collect(Collectors.toSet());
+        return permissions;
     }
 }
