@@ -1,9 +1,11 @@
 package com.example.jrspringsecurity.security;
 
+import com.example.jrspringsecurity.auth.ApplicationUsersService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -25,6 +27,9 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private ApplicationUsersService applicationUsersService;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
@@ -39,30 +44,7 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    @Bean
-    protected UserDetailsService userDetailsService() {
-        UserDetails leoUser = User.builder()
-                .username("student")
-                .password(passwordEncoder.encode("password"))
-                .authorities(STUDENT.getGrantedAuthorities())
-                .build();
-
-        UserDetails maryUser = User.builder()
-                .username("admin")
-                .password(passwordEncoder.encode("password"))
-                .authorities(ADMIN.getGrantedAuthorities())
-                .build();
-
-        UserDetails tomUser = User.builder()
-                .username("admin-trainee")
-                .password(passwordEncoder.encode("password"))
-                .authorities(ADMINTRAINEE.getGrantedAuthorities())
-                .build();
-
-        return new InMemoryUserDetailsManager(
-                leoUser,
-                maryUser,
-                tomUser
-        );
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(applicationUsersService);
     }
 }
